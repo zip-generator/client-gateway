@@ -20,18 +20,20 @@ export class DocumentGeneratorController {
     try {
       // Send the request to the NATS service
       const response$ = await firstValueFrom(
-        this.client.send<DocumentGenerationResponse>('document:generate', {
+        this.client.emit<DocumentGenerationResponse>('document:generate', {
           fileName: 'test',
           data: { name: 'John Doe' },
           responseTo: responseChannel,
         }),
       );
 
-      this.logger.debug('Document generation request sent', {
-        response$,
+      this.logger.log({
+        message: 'Document generation request sent',
+        meta: {
+          response$: response$,
+        },
       });
-
-      return { message: 'Document generation request sent' };
+      return { message: 'Document generation request sent', response$ };
     } catch (error) {
       this.logger.error('Error generating document', error);
       throw new RpcException(error);
