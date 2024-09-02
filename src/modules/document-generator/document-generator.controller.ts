@@ -3,7 +3,6 @@ import { Controller, Get, Inject, Logger } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 
-const responseChannel = 'document:generated';
 interface DocumentGenerationResponse {
   filename: string;
   data: { name: string };
@@ -20,22 +19,17 @@ export class DocumentGeneratorController {
     try {
       // Send the request to the NATS service
       const response$ = await firstValueFrom(
-        this.client.emit<DocumentGenerationResponse>('document:generate', {
-          fileName: 'test',
-          data: { name: 'John Doe' },
-          responseTo: responseChannel,
+        this.client.send<DocumentGenerationResponse>('documents:pdf', {
+          from: '2024-01-01',
+          to: '2024-01-02',
+          documentType: '00',
+          format: 'PDF',
         }),
       );
 
-      this.logger.log({
-        message: 'Document generation request sent',
-        meta: {
-          response$: response$,
-        },
-      });
       return { message: 'Document generation request sent', response$ };
     } catch (error) {
-      this.logger.error('Error generating document', error);
+      this.logger.error('Error generating document', error.mesage);
       throw new RpcException(error);
     }
   }
