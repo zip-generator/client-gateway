@@ -21,7 +21,7 @@ export class DocumentGeneratorController {
       const response$ = await firstValueFrom(
         this.client.send<DocumentGenerationResponse>('documents:pdf', {
           from: '2024-01-01',
-          to: '2024-01-02',
+          to: '2024-01-31',
           documentType: '00',
           format: 'PDF',
         }),
