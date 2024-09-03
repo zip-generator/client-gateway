@@ -1,4 +1,4 @@
-import { NATS_SERVICE } from '@app/config';
+import { GENERATE_PDF, NATS_SERVICE } from '@app/config';
 import { Controller, Get, Inject, Logger } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
@@ -19,7 +19,7 @@ export class DocumentGeneratorController {
     try {
       // Send the request to the NATS service
       const response$ = await firstValueFrom(
-        this.client.send<DocumentGenerationResponse>('documents:pdf', {
+        this.client.send<DocumentGenerationResponse>(GENERATE_PDF, {
           from: '2024-01-01',
           to: '2024-01-31',
           documentType: '00',
