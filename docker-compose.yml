@@ -1,0 +1,16 @@
+services:
+  client-gateway:
+    container_name: client-gateway
+    build:
+      context: ./
+      dockerfile: Dockerfile.dev
+    restart: always
+    volumes:
+        - ./src:/usr/src/app/src
+    environment:
+      - NODE_ENV=development
+      - NATS_SERVERS=${NATS_SERVERS}
+      - PORT=${PORT}
+    ports:
+      - "${PORT}:3000" 
+    command: pnpm start:dev
