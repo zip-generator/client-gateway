@@ -8,6 +8,7 @@ import {
   Controller,
   Get,
   Inject,
+  InternalServerErrorException,
   Logger,
   Param,
   ParseIntPipe,
@@ -46,15 +47,18 @@ export class DocumentGeneratorController {
   async getDocumentGenerationStatus(
     @Param('jobId', ParseIntPipe) jobId: number,
   ) {
-    this.logger.warn('Get document generation status request received', {
-      jobId,
-    });
-    const response = await firstValueFrom(
-      this.client.send(ZIP_STATUS, {
-        jobId,
-      }),
-    );
-    return response;
+    try {
+      const response = await firstValueFrom(
+        this.client.send(ZIP_STATUS, {
+          jobId,
+        }),
+      );
+      return response;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error?.message ?? 'Error getting document generation status',
+      );
+    }
   }
   @Get('download-zip')
   async downloadZip(@Query() queryDto: QueryKeyDto) {
@@ -63,9 +67,7 @@ export class DocumentGeneratorController {
         key: queryDto.fileName,
       }),
     );
-    this.logger.debug('Download zip request sent', {
-      response,
-    });
+
     return {
       downloadUrl: response,
       expiresIn: '300S (5 minutes)',
