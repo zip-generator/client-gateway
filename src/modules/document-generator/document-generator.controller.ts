@@ -17,6 +17,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { QueryKeyDto } from './dto/query.dto';
+import { GeneratePdfDto } from './dto';
 
 interface DocumentGenerationResponse {
   filename: string;
@@ -30,15 +31,10 @@ export class DocumentGeneratorController {
   constructor(@Inject(NATS_SERVICE) private readonly client: ClientProxy) {}
 
   @Get()
-  async generateDocuments() {
+  async generateDocuments(@Query() queryDto: GeneratePdfDto) {
     // Send the request to the NATS service
     const response$ = await firstValueFrom(
-      this.client.send<DocumentGenerationResponse>(GENERATE_PDF, {
-        from: '2024-01-01',
-        to: '2024-01-31',
-        documentType: '00',
-        format: 'PDF',
-      }),
+      this.client.send<DocumentGenerationResponse>(GENERATE_PDF, queryDto),
     );
 
     return { message: 'Document generation request sent', data: response$ };
