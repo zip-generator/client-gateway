@@ -32,6 +32,9 @@ importers:
       class-validator:
         specifier: ^0.14.1
         version: 0.14.1
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.5
       joi:
         specifier: ^17.13.3
         version: 17.13.3
@@ -61,7 +64,7 @@ importers:
         specifier: ^29.5.2
         version: 29.5.12
       '@types/node':
-        specifier: ^20.3.1
+        specifier: ^20.16.2
         version: 20.16.2
       '@types/supertest':
         specifier: ^6.0.0
@@ -72,9 +75,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^7.0.0
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
-      dotenv:
-        specifier: ^16.4.5
-        version: 16.4.5
       eslint:
         specifier: ^8.42.0
         version: 8.57.0
