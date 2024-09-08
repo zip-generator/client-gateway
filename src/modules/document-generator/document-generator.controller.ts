@@ -15,7 +15,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom } from 'rxjs';
 import { QueryKeyDto } from './dto/query.dto';
 import { GeneratePdfDto } from './dto';
 
@@ -35,6 +35,12 @@ export class DocumentGeneratorController {
     // Send the request to the NATS service
     const response$ = await firstValueFrom(
       this.client.send<DocumentGenerationResponse>(GENERATE_PDF, queryDto),
+    ).catch(
+      catchError((error) => {
+        throw new InternalServerErrorException(
+          error?.message ?? 'Error generating document',
+        );
+      }),
     );
 
     return { message: 'Document generation request sent', data: response$ };
