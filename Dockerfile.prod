@@ -1,39 +1,50 @@
-# Dependencies (use npm to install pnpm globally)
+# Fase de dependencias
 FROM node:21-alpine3.19 AS deps
 
+# Instala pnpm globalmente usando npm
+RUN npm install -g pnpm
+
+# Establece el directorio de trabajo
 WORKDIR /usr/src/app
 
-COPY package.json ./
-COPY pnpm-lock.yaml ./
+# Copia el archivo de bloqueo y el package.json para aprovechar la caché de Docker
+COPY --chown=node:node pnpm-lock.yaml ./
+COPY --chown=node:node package.json ./
 
-RUN npm install -g pnpm  # Install pnpm globally
-
+# Instala todas las dependencias (incluyendo devDependencies)
 RUN pnpm install --frozen-lockfile
 
-# Builder (use pnpm)
+# Fase de construcción
 FROM node:21-alpine3.19 AS build
 
+# Instala pnpm globalmente usando npm
+RUN npm install -g pnpm
+
 WORKDIR /usr/src/app
 
-RUN npm install -g pnpm  # Install pnpm globally
-COPY --from=deps /usr/src/app/node_modules ./node_modules 
-
-# Copy application code
+# Copia los archivos de la fase de dependencias
+COPY --chown=node:node --from=deps /usr/src/app/node_modules ./node_modules
+COPY --chown=node:node --from=deps /usr/src/app/package.json ./package.json
+COPY --chown=node:node --from=deps /usr/src/app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY . .
 
-RUN pnpm  build
+# Construye la aplicación
+RUN pnpm build
 
-# Production image (optimize with pnpm)
+# Elimina dependencias de desarrollo
+RUN pnpm prune --prod
+
+USER node
+
+# Imagen de producción
 FROM node:21-alpine3.19 AS prod
 
-WORKDIR /usr/src/app
-RUN npm install -g pnpm  # Install pnpm globally
-COPY --from=build /usr/src/app/dist ./dist
-COPY package.json ./
-COPY pnpm-lock.yaml ./
 
-# Instala solo las dependencias de producción
-RUN pnpm install --prod --frozen-lockfile
+WORKDIR /usr/src/app
+
+# Copia las dependencias y el build de la fase de construcción
+COPY --from=build /usr/src/app/node_modules ./node_modules
+COPY --from=build /usr/src/app/dist ./dist
 
 ENV NODE_ENV=production
 
@@ -41,4 +52,4 @@ ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD [ "node", "dist/main.js" ]
+CMD ["node", "dist/main.js"]
